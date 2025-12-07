@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outlaw Protologisms</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- We only need Inter for this clean design -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --outlaw-red: #991b1b; /* Dark, authoritative red */
+            --outlaw-black: #1f2937; /* Slate gray/black */
+            --outlaw-gold: #f59e0b; /* Accent gold */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 1rem;
+        }
+        .container-main {
+            max-width: 800px;
+            width: 100%;
+            margin-top: 2rem;
+        }
+        .header {
+            /* Clean, modern bottom border */
+            border-bottom: 4px solid var(--outlaw-red); 
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-area, .output-area {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e5e7eb;
+        }
+        .button-outlaw {
+            background-color: var(--outlaw-red);
+            color: white;
+            font-weight: 700;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .button-outlaw:hover {
+            background-color: #7f1d1d;
+            transform: translateY(-1px);
+        }
+        .button-outlaw:disabled {
+            background-color: #b9c1c9;
+            cursor: not-allowed;
+            transform: none;
+        }
+        /* Style for the generated Markdown output */
+        .output-content {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.6;
+            color: var(--outlaw-black);
+        }
+        .output-content strong {
+            color: var(--outlaw-red);
+        }
+        .output-content blockquote {
+            border-left: 3px solid var(--outlaw-gold);
+            padding-left: 1rem;
+            margin: 0.5rem 0 1rem 0;
+            font-style: italic;
+            color: #4b5563;
+        }
+        #loading-indicator {
+            color: var(--outlaw-red);
+            font-weight: 600;
+            display: none;
+        }
+        .footer-note {
+            margin-top: 2rem;
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container-main">
+        <header class="header text-center">
+            <h1 class="text-5xl font-extrabold" style="color: var(--outlaw-black);">
+                Outlaw <span style="color: var(--outlaw-red);">Protologisms™</span>
+            </h1>
+            <p class="text-lg text-gray-600 mt-2">Inventing the words the dictionary *wishes* it had.</p>
+        </header>
+
+        <!-- Input Area -->
+        <div class="input-area mb-8">
+            <label for="definition-input" class="block text-lg font-semibold mb-3 text-gray-700">
+                1. Enter a Definition:
+            </label>
+            <textarea id="definition-input" 
+                      rows="4" 
+                      placeholder="e.g., The feeling of wanting to throw your phone into the ocean after a 30-minute troubleshooting call." 
+                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 mb-4"
+                      required></textarea>
+            
+            <button id="generate-btn" class="button-outlaw w-full sm:w-auto">
+                Generate OED Entry
+            </button>
+            <p id="loading-indicator" class="mt-4 text-center">
+                Generating Protologism... please wait.
+            </p>
+        </div>
+
+        <!-- Output Area -->
+        <div class="output-area">
+            <h2 class="text-xl font-bold mb-4 text-gray-700 border-b pb-2">
+                2. Generated Entry
+            </h2>
+            <div id="output-content" class="output-content text-gray-900">
+                <p class="text-gray-500 italic">
+                    Your generated OED entry will appear here. Try submitting a definition, like the one we used for "Malacognition"!
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <footer class="footer-note">
+        <!-- Kept the copyright claim -->
+        <p>© 2025 Outlaw Protologisms™. All code and intellectual property are protected by copyright.</p>
+    </footer>
+
+    <script type="module">
+        // --- Firebase/Authentication Boilerplate (Required but not used for this specific public app) ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // setLogLevel('Debug'); 
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let db, auth, userId = null;
+        let isAuthReady = false;
+
+        if (firebaseConfig) {
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                } else {
+                    try {
+                        await signInAnonymously(auth);
+                        userId = auth.currentUser.uid;
+                    } catch (error) {
+                        console.error("Anonymous sign-in failed:", error);
+                    }
+                }
+                isAuthReady = true;
+            });
+
+            if (initialAuthToken) {
+                try {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } catch (error) {
+                    console.error("Custom token sign-in failed, proceeding to anonymous:", error);
+                }
+            }
+        }
+        // ---------------------------------------------------------------------------------------------
+
+        const definitionInput = document.getElementById('definition-input');
+        const generateBtn = document.getElementById('generate-btn');
+        const outputContent = document.getElementById('output-content');
+        const loadingIndicator = document.getElementById('loading-indicator');
+
+        const apiKey = ""; 
+        const modelName = "gemini-2.5-flash-preview-09-2025"; 
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+
+        // System instruction to guide the model's persona and output format
+        const systemPrompt = `You are an expert, satirical lexicographer working for the "Outlaw Protologisms" initiative. Your task is to invent a single, punchy, academic-sounding word (a protologism) that perfectly matches the user's definition. 
+
+        Then, write a complete Oxford English Dictionary (OED) style entry for this new word using Markdown. 
+        
+        The entry MUST include: 
+        1. The invented word in bold, followed by its part of speech and a period.
+        2. Etymology (must be fictional and academic-sounding).
+        3. Pronunciation (must be a fictional but plausible IPA sound).
+        4. At least two numbered definitions (1. and 2.).
+        5. Each definition must be followed by a short, satirical usage example in a Markdown blockquote, preceded by a year (e.g., > 2025: "I encountered pure Malacognition...").
+        
+        Do not include any introductory or concluding text, or any formatting outside the OED entry structure.`;
+
+
+        async function fetchWithExponentialBackoff(payload, maxRetries = 5, delay = 1000) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.status === 429 && i < maxRetries - 1) {
+                        // Rate limit error, wait and retry
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        delay *= 2; // Exponential backoff
+                        continue;
+                    }
+
+                    if (!response.ok) {
+                        throw new Error(`API call failed with status: ${response.status}`);
+                    }
+                    return await response.json();
+
+                } catch (error) {
+                    if (i === maxRetries - 1) {
+                        throw error;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2; 
+                }
+            }
+        }
+
+
+        async function generateProtologism() {
+            const definition = definitionInput.value.trim();
+            if (!definition) {
+                outputContent.innerHTML = `<p class="text-gray-500 italic">Please enter a definition before generating!</p>`;
+                return;
+            }
+
+            // UI state: Disable button and show loading
+            generateBtn.disabled = true;
+            loadingIndicator.style.display = 'block';
+            outputContent.innerHTML = `<p class="text-gray-500 italic">...lexicographers are hard at work coining the perfect term.</p>`;
+
+
+            const userQuery = `Definition to coin a term for: ${definition}`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            try {
+                const result = await fetchWithExponentialBackoff(payload);
+                const generatedText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (generatedText) {
+                    // Update output area with the generated Markdown. 
+                    outputContent.innerHTML = `
+                        <div class="generated-entry">
+                            ${generatedText.replaceAll('\n', '<br>')}
+                        </div>
+                    `;
+                } else {
+                    outputContent.innerHTML = `<p class="text-red-600 font-semibold">Error: Could not generate protologism. Check the console for details.</p>`;
+                    console.error("Generated result was empty or malformed:", result);
+                }
+
+            } catch (error) {
+                outputContent.innerHTML = `<p class="text-red-600 font-semibold">API Error: ${error.message}. Please try again.</p>`;
+                console.error("Error during Gemini API call:", error);
+            } finally {
+                // UI state: Re-enable button and hide loading
+                generateBtn.disabled = false;
+                loadingIndicator.style.display = 'none';
+            }
+        }
+
+        generateBtn.addEventListener('click', generateProtologism);
+    </script>
+</body>
+</html>
