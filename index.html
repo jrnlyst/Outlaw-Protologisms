@@ -182,8 +182,7 @@
         const generateBtn = document.getElementById('generate-btn');
         const outputContent = document.getElementById('output-content');
         const loadingIndicator = document.getElementById('loading-indicator');
-
-        const apiKey = ""; 
+        const apiKey = ""; //AIzaSyBVINvCwPmGfnbGZb6yEMvIrKdI0-8rqoQ
         const modelName = "gemini-2.5-flash-preview-09-2025"; 
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
@@ -235,6 +234,12 @@
 
 
         async function generateProtologism() {
+            // Guard clause for missing key check
+            if (!apiKey || apiKey === "") {
+                outputContent.innerHTML = `<p class="text-red-600 font-semibold">Error: API Key is missing! Please update index.html with your personal Gemini API key to run this app on GitHub Pages.</p>`;
+                return;
+            }
+
             const definition = definitionInput.value.trim();
             if (!definition) {
                 outputContent.innerHTML = `<p class="text-gray-500 italic">Please enter a definition before generating!</p>`;
